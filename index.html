@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Template Generator, Bootstrap popup-stijl</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1b2430; --paper:#f5f6f8; --line:#d9dee5; --accent:#2f4a6b;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+  }
+  body{background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+  .app-header{background:var(--ink);color:#fff;}
+  .app-header .lead{color:#b9c4d1;}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:.5rem;}
+  .panel-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7684;font-weight:600;}
+  .field-row{background:#fff;border:1px solid var(--line);border-radius:.4rem;transition:box-shadow .15s,border-color .15s;}
+  .field-row.highlight{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,74,107,.18);}
+  .field-row .grip{cursor:grab;color:#aeb6c0;user-select:none;}
+  .field-row.dragging{opacity:.4;}
+  .field-row.dragover{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,74,107,.15);}
+  .role-hint{font-size:.7rem;color:#8b95a1;}
+  pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;tab-size:2;background:#0f1621;color:#d6e0ec;border-radius:.5rem;padding:1rem;max-height:460px;overflow:auto;white-space:pre;}
+  .preview-shell{background:#eef1f4;border:1px dashed var(--line);border-radius:.5rem;padding:1rem;}
+  .preview-card{background:#fff;border:1px solid var(--line);border-radius:.5rem;padding:1rem;max-width:340px;margin:0 auto;box-shadow:0 6px 24px rgba(20,30,45,.08);}
+  .preview-card [data-fieldsrc]{cursor:pointer;outline:2px solid transparent;outline-offset:2px;border-radius:4px;transition:outline-color .12s;}
+  .preview-card.editable [data-fieldsrc]:hover{outline-color:rgba(47,74,107,.45);}
+  .btn-ink{background:var(--ink);color:#fff;}
+  .btn-ink:hover{background:#0f1621;color:#fff;}
+  .copied-flash{animation:flash .8s ease;}
+  @keyframes flash{0%{background:#198754;color:#fff}100%{}}
+  .form-select-sm,.form-control-sm{font-size:.8rem;}
+  .map-rule{background:#f8fafc;border:1px solid var(--line);border-radius:.35rem;}
+  .swatch{width:18px;height:18px;border-radius:4px;border:1px solid rgba(0,0,0,.15);display:inline-block;vertical-align:middle;}
+  .data-field label{font-size:.72rem;color:#6b7684;margin-bottom:1px;}
+  .seg-btn.active{background:var(--ink);color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="app-header py-4 mb-4">
+  <div class="container">
+    <h1 class="h4 mb-1">Template Generator</h1>
+    <p class="lead mb-0 small">Definieer velden, stel mappings in, en bewerk direct in het voorbeeld. Kopieer de Bootstrap-template.</p>
+  </div>
+</header>
+
+<div class="container pb-5">
+  <div class="row g-4">
+
+    <!-- LINKS -->
+    <div class="col-lg-5">
+      <div class="panel p-3 mb-3">
+        <div class="panel-title mb-2">Kop</div>
+        <label class="form-label small mb-1">Ondertitel-tekst <span class="text-muted">(vast, optioneel)</span></label>
+        <input id="subtitleText" class="form-control form-control-sm mb-2" placeholder="bijv. KNMI weerswaarschuwing">
+        <div class="role-hint">Kleine grijze regel onder de titel. Laat leeg om te verbergen.</div>
+      </div>
+
+      <div class="panel p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="panel-title">Velden</div>
+          <button id="addField" class="btn btn-sm btn-ink">+ Veld</button>
+        </div>
+        <div id="fieldList" class="d-flex flex-column gap-2"></div>
+        <div class="role-hint mt-2">Sleep aan <span style="font-family:var(--mono)">⠿</span> om te herordenen. Klik in het voorbeeld op een element om het bijbehorende veld hier te markeren.</div>
+      </div>
+    </div>
+
+    <!-- RECHTS -->
+    <div class="col-lg-7">
+      <div class="panel p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="panel-title">Live voorbeeld</div>
+          <div class="btn-group btn-group-sm" role="group">
+            <button id="modeEdit" class="btn btn-outline-secondary seg-btn active">Klik-bewerken</button>
+            <button id="modeData" class="btn btn-outline-secondary seg-btn">Testdata</button>
+          </div>
+        </div>
+
+        <div id="dataPanel" class="mb-2 d-none">
+          <div class="panel-title mb-2">Testdata invullen</div>
+          <div id="dataFields" class="row g-2"></div>
+        </div>
+
+        <div class="preview-shell">
+          <div id="preview" class="preview-card editable"></div>
+        </div>
+        <div class="role-hint mt-2" id="previewHint">Klik op een onderdeel om het veld links te markeren.</div>
+      </div>
+
+      <div class="panel p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="panel-title">Template-code</div>
+          <button id="copyBtn" class="btn btn-sm btn-ink">Kopieer</button>
+        </div>
+        <pre id="output" class="code mb-0"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   ROLLEN
+===================================================================== */
+const ROLES = {
+  titel:      "Titel (h6)",
+  icoon:      "Icoon (kop, via mapping-URL)",
+  headerinfo: "Kop-info rechtsboven",
+  badge:      "Status-badge (mapping → kleur/label)",
+  hero:       "Hero-blok (grote waarde, mapping → kleur)",
+  meetwaarde: "Meetwaarde (getal + eenheid)",
+  bracket:    "Getal in kader",
+  regel:      "Regel (label + waarde)",
+  datumregel: "Datum-regel",
+  duur:       "Duurberekening (2 datums → dagen)",
+  progress:   "Voortgangsbalk (2 datums)",
+  chip:       "Chip/badge (mapping → kleur)",
+  detail:     "Detail (inklapbaar)",
+  footer:     "Footer (bijgewerkt op)",
+  negeer:     "Niet tonen"
+};
+
+/* rollen die een waarde→kleur/label mapping ondersteunen */
+const MAPPABLE = new Set(["icoon","badge","hero","chip"]);
+
+/* Bootstrap-kleuropties voor mappings */
+const BS_COLORS = [
+  {v:"text-bg-secondary", label:"Grijs",   css:"#6c757d"},
+  {v:"text-bg-success",   label:"Groen",   css:"#198754"},
+  {v:"text-bg-warning",   label:"Geel",    css:"#ffc107"},
+  {v:"text-bg-danger",    label:"Rood",    css:"#dc3545"},
+  {v:"text-bg-primary",   label:"Blauw",   css:"#0d6efd"},
+  {v:"text-bg-info",      label:"Lichtblauw", css:"#0dcaf0"},
+  {v:"text-bg-dark",      label:"Donker",  css:"#212529"}
+];
+const colorCss = (v)=> (BS_COLORS.find(c=>c.v===v)||BS_COLORS[0]).css;
+
+/* =====================================================================
+   STARTSET — drie generieke velden
+===================================================================== */
+let fields = [
+  { id:"gebeurtenis", label:"Gebeurtenis", type:"text",   role:"titel",  map:[], iconBase:"" },
+  { id:"niveau",      label:"Niveau",      type:"text",   role:"badge",
+    map:[ {when:"Hoog", color:"text-bg-danger", label:"Hoog"},
+          {when:"Midden", color:"text-bg-warning", label:"Verhoogd"},
+          {when:"Laag", color:"text-bg-success", label:"Normaal"} ] },
+  { id:"aantal",      label:"Aantal",      type:"number", role:"bracket", map:[] }
+];
+
+/* per-veld testdata (voorbeeldwaarden) */
+let sampleData = {};
+
+const el = (s)=>document.querySelector(s);
+const fieldList = el("#fieldList");
+let editMode = "edit"; // 'edit' | 'data'
+
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function ensureField(f){ if(!Array.isArray(f.map)) f.map=[]; if(f.iconBase===undefined) f.iconBase=""; return f; }
+fields.forEach(ensureField);
+
+/* =====================================================================
+   VELDENLIJST
+===================================================================== */
+function renderFields(){
+  fieldList.innerHTML="";
+  fields.forEach((f,i)=>{
+    ensureField(f);
+    const row=document.createElement("div");
+    row.className="field-row p-2";
+    row.draggable=true;
+    row.dataset.index=i;
+    row.dataset.fieldid=f.id;
+
+    let inner=`
+      <div class="d-flex align-items-center gap-2">
+        <span class="grip" title="Sleep om te herordenen">⠿</span>
+        <input class="form-control form-control-sm f-id" style="max-width:150px" value="${esc(f.id)}" placeholder="veld_id">
+        <input class="form-control form-control-sm f-label" value="${esc(f.label)}" placeholder="weergavenaam">
+        <button class="btn btn-sm btn-outline-danger f-del" title="Verwijder">×</button>
+      </div>
+      <div class="d-flex align-items-center gap-2 mt-2">
+        <select class="form-select form-select-sm f-type" style="max-width:110px">
+          ${["text","number","date"].map(t=>`<option value="${t}" ${f.type===t?"selected":""}>${t}</option>`).join("")}
+        </select>
+        <select class="form-select form-select-sm f-role">
+          ${Object.entries(ROLES).map(([k,v])=>`<option value="${k}" ${f.role===k?"selected":""}>${v}</option>`).join("")}
+        </select>
+      </div>`;
+
+    /* icoon-basis-URL veld */
+    if(f.role==="icoon"){
+      inner+=`<div class="mt-2">
+        <input class="form-control form-control-sm f-iconbase" value="${esc(f.iconBase||"")}" placeholder="Icoon-basis-URL (optioneel, bijv. .../risico_)">
+        <div class="role-hint mt-1">Zonder mapping: waarde wordt achter de basis geplakt + <code>.png</code>. Met mapping hieronder: elke waarde krijgt een eigen volledige URL.</div>
+      </div>`;
+    }
+
+    /* mapping-editor */
+    if(MAPPABLE.has(f.role)){
+      inner+=`<div class="mt-2 map-wrap" data-idx="${i}">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="role-hint">Mapping — waarde bepaalt ${f.role==="icoon"?"icoon-URL":"kleur/label"}</span>
+          <button class="btn btn-sm btn-outline-secondary py-0 px-2 f-addrule">+ regel</button>
+        </div>
+        <div class="d-flex flex-column gap-1 map-rules"></div>
+      </div>`;
+    }
+
+    row.innerHTML=inner;
+
+    row.querySelector(".f-id").addEventListener("input",e=>{const old=fields[i].id;fields[i].id=e.target.value;if(sampleData[old]!==undefined){sampleData[e.target.value]=sampleData[old];delete sampleData[old];}regen();});
+    row.querySelector(".f-label").addEventListener("input",e=>{fields[i].label=e.target.value;regen();});
+    row.querySelector(".f-type").addEventListener("change",e=>{fields[i].type=e.target.value;delete sampleData[fields[i].id];renderFields();regen();});
+    row.querySelector(".f-role").addEventListener("change",e=>{fields[i].role=e.target.value;renderFields();regen();});
+    row.querySelector(".f-del").addEventListener("click",()=>{delete sampleData[fields[i].id];fields.splice(i,1);renderFields();regen();});
+    const ib=row.querySelector(".f-iconbase"); if(ib) ib.addEventListener("input",e=>{fields[i].iconBase=e.target.value;regen();});
+
+    /* mapping-regels renderen */
+    const mapRules=row.querySelector(".map-rules");
+    if(mapRules){
+      const renderRules=()=>{
+        mapRules.innerHTML="";
+        fields[i].map.forEach((r,ri)=>{
+          const rule=document.createElement("div");
+          rule.className="map-rule p-1 d-flex align-items-center gap-1 flex-wrap";
+          if(f.role==="icoon"){
+            rule.innerHTML=`
+              <input class="form-control form-control-sm r-when" style="max-width:90px" value="${esc(r.when)}" placeholder="waarde">
+              <span class="small text-muted">→</span>
+              <input class="form-control form-control-sm r-url" style="min-width:140px;flex:1" value="${esc(r.url||"")}" placeholder="volledige icoon-URL">
+              <button class="btn btn-sm btn-outline-danger py-0 px-2 r-del">×</button>`;
+          }else{
+            rule.innerHTML=`
+              <input class="form-control form-control-sm r-when" style="max-width:90px" value="${esc(r.when)}" placeholder="waarde">
+              <span class="small text-muted">→</span>
+              <select class="form-select form-select-sm r-color" style="max-width:110px">
+                ${BS_COLORS.map(c=>`<option value="${c.v}" ${r.color===c.v?"selected":""}>${c.label}</option>`).join("")}
+              </select>
+              <input class="form-control form-control-sm r-label" style="max-width:120px" value="${esc(r.label||"")}" placeholder="label (optioneel)">
+              <button class="btn btn-sm btn-outline-danger py-0 px-2 r-del">×</button>`;
+          }
+          rule.querySelector(".r-when").addEventListener("input",e=>{r.when=e.target.value;regen();});
+          const rc=rule.querySelector(".r-color"); if(rc)rc.addEventListener("change",e=>{r.color=e.target.value;regen();});
+          const rl=rule.querySelector(".r-label"); if(rl)rl.addEventListener("input",e=>{r.label=e.target.value;regen();});
+          const ru=rule.querySelector(".r-url"); if(ru)ru.addEventListener("input",e=>{r.url=e.target.value;regen();});
+          rule.querySelector(".r-del").addEventListener("click",()=>{fields[i].map.splice(ri,1);renderRules();regen();});
+          mapRules.appendChild(rule);
+        });
+      };
+      renderRules();
+      row.querySelector(".f-addrule").addEventListener("click",()=>{
+        if(f.role==="icoon") fields[i].map.push({when:"",url:""});
+        else fields[i].map.push({when:"",color:"text-bg-secondary",label:""});
+        renderRules();regen();
+      });
+    }
+
+    /* drag & drop */
+    row.addEventListener("dragstart",e=>{row.classList.add("dragging");e.dataTransfer.setData("text/plain",i);});
+    row.addEventListener("dragend",()=>row.classList.remove("dragging"));
+    row.addEventListener("dragover",e=>{e.preventDefault();row.classList.add("dragover");});
+    row.addEventListener("dragleave",()=>row.classList.remove("dragover"));
+    row.addEventListener("drop",e=>{
+      e.preventDefault();row.classList.remove("dragover");
+      const from=+e.dataTransfer.getData("text/plain"), to=i;
+      if(from===to)return;
+      const [m]=fields.splice(from,1); fields.splice(to,0,m);
+      renderFields();regen();
+    });
+
+    fieldList.appendChild(row);
+  });
+}
+
+/* markeer een veldrij (bij klik in preview) */
+function highlightField(id){
+  document.querySelectorAll(".field-row").forEach(r=>{
+    r.classList.toggle("highlight", r.dataset.fieldid===id);
+    if(r.dataset.fieldid===id) r.scrollIntoView({behavior:"smooth",block:"center"});
+  });
+  setTimeout(()=>document.querySelectorAll(".field-row").forEach(r=>r.classList.remove("highlight")),1600);
+}
+
+/* =====================================================================
+   MAPPING-HELPERS (gedeeld door generate + preview)
+===================================================================== */
+function mapMatch(f,val){
+  if(!f.map||!f.map.length) return null;
+  const key=String(val==null?"":val).toLowerCase();
+  return f.map.find(r=>String(r.when).toLowerCase()===key) || null;
+}
+
+/* =====================================================================
+   TESTDATA
+===================================================================== */
+function hash(str){let h=0;for(const c of String(str))h=(h*31+c.charCodeAt(0))>>>0;return h;}
+function defaultSample(f){
+  if(f.type==="number") return [1200,350,48,7][hash(f.id)%4];
+  if(f.type==="date"){
+    const base=new Date(2026,6,3,10,0);
+    base.setDate(base.getDate()+(/eind|to|end/i.test(f.id)?3:0));
+    return base.toISOString();
+  }
+  if(MAPPABLE.has(f.role)&&f.map&&f.map.length) return f.map[0].when;
+  const words=["Zomerfeest","Kermis","Marathon","Centrum","Marktplein 1","Jan de Vries","Gemeente","Onweer","Wind"];
+  return words[hash(f.id)%words.length];
+}
+function valOf(f){
+  if(sampleData[f.id]!==undefined && sampleData[f.id]!=="") return sampleData[f.id];
+  return defaultSample(f);
+}
+
+/* testdata-invulpaneel */
+function renderDataPanel(){
+  const wrap=el("#dataFields"); wrap.innerHTML="";
+  fields.filter(f=>f.role!=="negeer").forEach(f=>{
+    const col=document.createElement("div");
+    col.className="col-6 data-field";
+    const cur=sampleData[f.id]!==undefined?sampleData[f.id]:"";
+    let input;
+    if(MAPPABLE.has(f.role)&&f.map&&f.map.length){
+      input=`<select class="form-select form-select-sm d-in" data-id="${esc(f.id)}">
+        <option value="">(auto)</option>
+        ${f.map.map(r=>`<option value="${esc(r.when)}" ${cur===r.when?"selected":""}>${esc(r.when)}</option>`).join("")}
+      </select>`;
+    }else if(f.type==="date"){
+      input=`<input type="datetime-local" class="form-control form-control-sm d-in" data-id="${esc(f.id)}" value="${esc(toLocalInput(cur))}">`;
+    }else{
+      input=`<input class="form-control form-control-sm d-in" data-id="${esc(f.id)}" value="${esc(cur)}" placeholder="(auto)" type="${f.type==="number"?"number":"text"}">`;
+    }
+    col.innerHTML=`<label class="d-block">${esc(f.label||f.id)}</label>${input}`;
+    wrap.appendChild(col);
+  });
+  wrap.querySelectorAll(".d-in").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const id=e.target.dataset.id, v=e.target.value;
+      if(e.target.type==="datetime-local") sampleData[id]=v?new Date(v).toISOString():"";
+      else sampleData[id]=v;
+      regen();
+    });
+  });
+}
+function toLocalInput(iso){
+  if(!iso)return"";const d=new Date(iso);if(isNaN(d))return"";
+  const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/* =====================================================================
+   TEMPLATE GENEREREN  (${...} placeholders voor Hotaru/multibeeld)
+===================================================================== */
+const nlDT=`{ day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }`;
+const dfmt=id=>`\${${id} ? new Date(${id}).toLocaleString('nl-NL', ${nlDT}) : '-'}`;
+
+function mapExprColor(f){ // → JS-expressie die kleurklasse teruggeeft
+  const cases=f.map.map(r=>`${JSON.stringify(String(r.when))}: ${JSON.stringify(r.color||"text-bg-secondary")}`).join(", ");
+  return `({${cases}}[String(${f.id})] || 'text-bg-secondary')`;
+}
+function mapExprLabel(f){
+  const cases=f.map.filter(r=>r.label).map(r=>`${JSON.stringify(String(r.when))}: ${JSON.stringify(r.label)}`).join(", ");
+  if(!cases) return `${f.id}`;
+  return `({${cases}}[String(${f.id})] || ${f.id})`;
+}
+function mapExprUrl(f){
+  const cases=f.map.map(r=>`${JSON.stringify(String(r.when))}: ${JSON.stringify(r.url||"")}`).join(", ");
+  return `({${cases}}[String(${f.id})] || '')`;
+}
+
+function generate(){
+  const subtitle=el("#subtitleText").value.trim();
+  const by=r=>fields.filter(f=>f.role===r);
+  const titel=by("titel")[0];
+  const iconF=by("icoon")[0];
+  const headerinfo=by("headerinfo");
+  const badges=by("badge");
+  const heroes=by("hero");
+  const meet=by("meetwaarde");
+  const brackets=by("bracket");
+  const regels=by("regel");
+  const datumregels=by("datumregel");
+  const duur=by("duur");
+  const progress=by("progress");
+  const chips=by("chip");
+  const details=by("detail");
+  const footers=by("footer");
+
+  let L=[];
+  L.push(`<div class="popup-template">`);
+
+  /* KOP */
+  L.push(`  <!-- Kop -->`);
+  const hasHI=headerinfo.length>0;
+  L.push(`  <div class="d-flex ${hasHI?"justify-content-between ":""}align-items-start pb-2 mb-3 border-bottom" style="gap:10px;">`);
+  L.push(`    <div class="d-flex align-items-center" style="gap:10px;min-width:0;">`);
+  if(iconF){
+    let src;
+    if(iconF.map&&iconF.map.length) src=`\${${mapExprUrl(iconF)}}`;
+    else if(iconF.iconBase) src=`${iconF.iconBase}\${${iconF.id} ?? ''}.png`;
+    else src="";
+    if(src) L.push(`      <img src="${src}" width="24" height="24" style="width:24px;height:24px;flex-shrink:0;" alt="">`);
+  }
+  L.push(`      <div style="min-width:0;">`);
+  L.push(`        <h6 class="mb-0">\${${titel?titel.id+" || 'Titel'":"'Titel'"}}</h6>`);
+  if(subtitle) L.push(`        <small class="text-muted">${esc(subtitle)}</small>`);
+  L.push(`      </div>`);
+  L.push(`    </div>`);
+  /* eerste badge in de kop rechts */
+  if(badges.length){
+    const b=badges[0];
+    L.push(`    <span class="badge rounded-pill \${${mapExprColor(b)}}" style="white-space:nowrap;">\${${mapExprLabel(b)}}</span>`);
+  }
+  if(hasHI){
+    const cond=headerinfo.map(f=>f.id).join(" || ");
+    L.push(`    \${(${cond}) ? \``);
+    L.push(`    <div class="text-end" style="min-width:0;">`);
+    headerinfo.forEach((f,idx)=>L.push(`      \${${f.id} ? \`<div class="${idx===0?"small fw-semibold":"small text-muted"}">\${${f.id}}</div>\` : ''}`));
+    L.push(`    </div>\` : ''}`);
+  }
+  L.push(`  </div>`);
+
+  /* extra badges (na de eerste) als losse rij */
+  if(badges.length>1){
+    L.push(`  <div class="d-flex flex-wrap gap-1 mb-3">`);
+    badges.slice(1).forEach(b=>L.push(`    <span class="badge rounded-pill \${${mapExprColor(b)}}">\${${mapExprLabel(b)}}</span>`));
+    L.push(`  </div>`);
+  }
+
+  /* HERO */
+  heroes.forEach(f=>{
+    L.push(`  <!-- ${f.label} -->`);
+    L.push(`  <div class="text-center p-3 mb-3 rounded \${${mapExprColor(f)}}">`);
+    L.push(`    <small class="d-block mb-1">${esc((f.label||"").toUpperCase())}</small>`);
+    L.push(`    <div class="display-6 fw-bold lh-1">\${${f.id} ?? '-'}</div>`);
+    L.push(`  </div>`);
+  });
+
+  /* MEETWAARDE */
+  meet.forEach(f=>{
+    L.push(`  <!-- ${f.label} -->`);
+    L.push(`  <div class="text-center mb-3">`);
+    L.push(`    <small class="d-block text-muted mb-1">${esc((f.label||"").toUpperCase())}</small>`);
+    L.push(`    <div class="display-6 fw-bold lh-1">\${${f.id} != null ? String(${f.id}).replace('.', ',') : '-'} <small class="fs-6 fw-normal text-muted">${esc(f.unit||"")}</small></div>`);
+    L.push(`  </div>`);
+  });
+
+  /* BRACKETS */
+  if(brackets.length){
+    L.push(`  <div class="row g-2 text-center mb-3">`);
+    brackets.forEach(f=>{
+      L.push(`    <div class="col">`);
+      L.push(`      <div class="p-2 rounded border h-100">`);
+      L.push(`        <div class="fs-4 fw-semibold lh-1">\${${f.id} ?? 0}</div>`);
+      L.push(`        <small class="text-muted">${esc(f.label)}</small>`);
+      L.push(`      </div>`);
+      L.push(`    </div>`);
+    });
+    L.push(`  </div>`);
+  }
+
+  /* REGELS + DATUMREGELS */
+  const lines=[...regels.map(f=>({f,d:false})),...datumregels.map(f=>({f,d:true}))];
+  if(lines.length){
+    L.push(`  <ul class="list-group list-group-flush mb-2">`);
+    lines.forEach(({f,d})=>{
+      const v=d?dfmt(f.id):`\${${f.id} ?? '-'}`;
+      L.push(`    <li class="list-group-item d-flex justify-content-between px-0 bg-transparent"><span class="text-muted small">${esc(f.label)}</span><span class="small fw-semibold">${v}</span></li>`);
+    });
+    L.push(`  </ul>`);
+  }
+
+  /* DUUR */
+  if(duur.length>=2){
+    const s=duur[0].id,e=duur[1].id;
+    L.push(`  <ul class="list-group list-group-flush mb-2">`);
+    [duur[0],duur[1]].forEach(f=>L.push(`    <li class="list-group-item d-flex justify-content-between px-0 bg-transparent"><span class="text-muted small">${esc(f.label)}</span><span class="small fw-semibold">${dfmt(f.id)}</span></li>`));
+    L.push(`  </ul>`);
+    L.push(`  \${(() => {`);
+    L.push(`    if (!${s} || !${e}) return '';`);
+    L.push(`    const s = new Date(${s}), e = new Date(${e});`);
+    L.push(`    if (isNaN(s) || isNaN(e) || e < s) return '';`);
+    L.push(`    const dagen = ['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];`);
+    L.push(`    const d0 = new Date(s.getFullYear(), s.getMonth(), s.getDate());`);
+    L.push(`    const d1 = new Date(e.getFullYear(), e.getMonth(), e.getDate());`);
+    L.push(`    const n = Math.round((d1 - d0) / 86400000) + 1;`);
+    L.push(`    const r = n === 1 ? 'Op ' + dagen[s.getDay()] : 'Van ' + dagen[s.getDay()] + ' t/m ' + dagen[e.getDay()];`);
+    L.push(`    return '<p class="text-center small text-muted mb-3">' + r + ' &middot; <strong>' + n + (n===1?' dag':' dagen') + '</strong></p>';`);
+    L.push(`  })()}`);
+  }
+
+  /* PROGRESS */
+  if(progress.length>=2){
+    const b=progress[0].id,e=progress[1].id;
+    L.push(`  \${(() => {`);
+    L.push(`    if (!${b} || !${e}) return '';`);
+    L.push(`    const b = new Date(${b}).getTime(), e = new Date(${e}).getTime(), now = Date.now();`);
+    L.push(`    if (isNaN(b) || isNaN(e) || e <= b) return '';`);
+    L.push(`    const pct = Math.max(0, Math.min(100, Math.round((now - b) / (e - b) * 100)));`);
+    L.push(`    const over = now > e, N = 20, filled = over ? N : Math.round(pct/100*N);`);
+    L.push(`    let segs=''; for (let i=0;i<N;i++) segs += '<div class="progress-bar flex-fill ' + (i<filled?'bg-primary':'bg-transparent') + '"></div>';`);
+    L.push(`    const label = over ? 'Eindtijd verstreken' : pct + '% verstreken';`);
+    L.push(`    return '<div class="d-flex justify-content-between mb-1"><span class="text-muted small">Voortgang</span><span class="small fw-semibold">'+label+'</span></div><div class="progress mb-3">'+segs+'</div>';`);
+    L.push(`  })()}`);
+  }
+
+  /* CHIPS */
+  if(chips.length){
+    L.push(`  <div class="d-flex flex-wrap gap-1 mb-3">`);
+    chips.forEach(f=>L.push(`    \${${f.id} ? \`<span class="badge rounded-pill \${${mapExprColor(f)}}">${esc(f.label)}: \${${f.id}}</span>\` : ''}`));
+    L.push(`  </div>`);
+  }
+
+  /* DETAILS */
+  if(details.length){
+    const cond=details.map(f=>f.id).join(" || ");
+    L.push(`  \${(${cond}) ? \``);
+    L.push(`  <details class="border rounded p-2 mb-2">`);
+    L.push(`    <summary class="text-muted small fw-semibold">Details</summary>`);
+    details.forEach(f=>{
+      const v=f.type==="date"?dfmt(f.id):`\${${f.id}}`;
+      L.push(`    \${${f.id} ? \`<div class="d-flex justify-content-between align-items-center mt-2"><span class="small text-muted">${esc(f.label)}</span><span class="small fw-semibold">${v}</span></div>\` : ''}`);
+    });
+    L.push(`  </details>\` : ''}`);
+  }
+
+  /* FOOTER */
+  footers.forEach(f=>{
+    L.push(`  \${${f.id} ? \`<p class="text-muted mb-0 pt-2 border-top small">${esc(f.label)}: \${new Date(${f.id}).toLocaleString('nl-NL', ${nlDT})}</p>\` : ''}`);
+  });
+
+  L.push(`</div>`);
+  return L.join("\n");
+}
+
+/* =====================================================================
+   PREVIEW — direct opbouwen met testdata (geen eval)
+===================================================================== */
+function fmtDate(v){if(!v)return'-';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('nl-NL',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function tag(id,html){return `<span data-fieldsrc="${esc(id)}">${html}</span>`;}
+
+function buildPreview(){
+  const subtitle=el("#subtitleText").value.trim();
+  const by=r=>fields.filter(f=>f.role===r);
+  const V={}; fields.forEach(f=>{if(f.role!=="negeer")V[f.id]=valOf(f);});
+
+  const titel=by("titel")[0], iconF=by("icoon")[0], headerinfo=by("headerinfo");
+  const badges=by("badge"), heroes=by("hero"), meet=by("meetwaarde");
+  const brackets=by("bracket"), regels=by("regel"), datumregels=by("datumregel");
+  const duur=by("duur"), progress=by("progress"), chips=by("chip");
+  const details=by("detail"), footers=by("footer");
+
+  const H=[];
+  const hasHI=headerinfo.length>0;
+  H.push(`<div class="d-flex ${hasHI?"justify-content-between ":""}align-items-start pb-2 mb-3 border-bottom" style="gap:10px;">`);
+  H.push(`<div class="d-flex align-items-center" style="gap:10px;min-width:0;">`);
+  if(iconF){
+    let url="";
+    if(iconF.map&&iconF.map.length){const m=mapMatch(iconF,V[iconF.id]);url=m?m.url:"";}
+    else if(iconF.iconBase) url=iconF.iconBase+encodeURIComponent(V[iconF.id]??"")+".png";
+    if(url) H.push(tag(iconF.id,`<img src="${esc(url)}" width="24" height="24" style="width:24px;height:24px;flex-shrink:0;" alt="">`));
+    else H.push(tag(iconF.id,`<span class="swatch" style="background:#e9edf1"></span>`));
+  }
+  H.push(`<div style="min-width:0;">`);
+  H.push(tag(titel?titel.id:"__t",`<h6 class="mb-0">${esc(titel?(V[titel.id]||"Titel"):"Titel")}</h6>`));
+  if(subtitle) H.push(`<small class="text-muted">${esc(subtitle)}</small>`);
+  H.push(`</div></div>`);
+  if(badges.length){
+    const b=badges[0], m=mapMatch(b,V[b.id]);
+    const color=m?m.color:"text-bg-secondary", lbl=m&&m.label?m.label:V[b.id];
+    H.push(tag(b.id,`<span class="badge rounded-pill ${color}" style="white-space:nowrap;">${esc(lbl)}</span>`));
+  }
+  if(hasHI){
+    H.push(`<div class="text-end" style="min-width:0;">`);
+    headerinfo.forEach((f,idx)=>{if(V[f.id])H.push(tag(f.id,`<div class="${idx===0?"small fw-semibold":"small text-muted"}">${esc(V[f.id])}</div>`));});
+    H.push(`</div>`);
+  }
+  H.push(`</div>`);
+
+  if(badges.length>1){
+    H.push(`<div class="d-flex flex-wrap gap-1 mb-3">`);
+    badges.slice(1).forEach(b=>{const m=mapMatch(b,V[b.id]);H.push(tag(b.id,`<span class="badge rounded-pill ${m?m.color:"text-bg-secondary"}">${esc(m&&m.label?m.label:V[b.id])}</span>`));});
+    H.push(`</div>`);
+  }
+
+  heroes.forEach(f=>{
+    const m=mapMatch(f,V[f.id]);
+    H.push(tag(f.id,`<div class="text-center p-3 mb-3 rounded ${m?m.color:"text-bg-secondary"}"><small class="d-block mb-1">${esc((f.label||"").toUpperCase())}</small><div class="display-6 fw-bold lh-1">${esc(V[f.id]??"-")}</div></div>`));
+  });
+
+  meet.forEach(f=>{
+    const raw=V[f.id];
+    const s=(raw!=null&&raw!=="")?String(raw).replace(".",","):"-";
+    H.push(tag(f.id,`<div class="text-center mb-3"><small class="d-block text-muted mb-1">${esc((f.label||"").toUpperCase())}</small><div class="display-6 fw-bold lh-1">${esc(s)} <small class="fs-6 fw-normal text-muted">${esc(f.unit||"")}</small></div></div>`));
+  });
+
+  if(brackets.length){
+    H.push(`<div class="row g-2 text-center mb-3">`);
+    brackets.forEach(f=>H.push(`<div class="col">${tag(f.id,`<div class="p-2 rounded border h-100"><div class="fs-4 fw-semibold lh-1">${esc(V[f.id]??0)}</div><small class="text-muted">${esc(f.label)}</small></div>`)}</div>`));
+    H.push(`</div>`);
+  }
+
+  const lines=[...regels.map(f=>({f,d:false})),...datumregels.map(f=>({f,d:true}))];
+  if(lines.length){
+    H.push(`<ul class="list-group list-group-flush mb-2">`);
+    lines.forEach(({f,d})=>{const v=d?fmtDate(V[f.id]):(V[f.id]??'-');H.push(`<li class="list-group-item d-flex justify-content-between px-0 bg-transparent"><span class="text-muted small">${esc(f.label)}</span>${tag(f.id,`<span class="small fw-semibold">${esc(v)}</span>`)}</li>`);});
+    H.push(`</ul>`);
+  }
+
+  if(duur.length>=2){
+    H.push(`<ul class="list-group list-group-flush mb-2">`);
+    [duur[0],duur[1]].forEach(f=>H.push(`<li class="list-group-item d-flex justify-content-between px-0 bg-transparent"><span class="text-muted small">${esc(f.label)}</span>${tag(f.id,`<span class="small fw-semibold">${esc(fmtDate(V[f.id]))}</span>`)}</li>`));
+    H.push(`</ul>`);
+    const s=new Date(V[duur[0].id]),e=new Date(V[duur[1].id]);
+    if(!isNaN(s)&&!isNaN(e)&&e>=s){
+      const dg=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+      const d0=new Date(s.getFullYear(),s.getMonth(),s.getDate()),d1=new Date(e.getFullYear(),e.getMonth(),e.getDate());
+      const n=Math.round((d1-d0)/86400000)+1;
+      const r=n===1?'Op '+dg[s.getDay()]:'Van '+dg[s.getDay()]+' t/m '+dg[e.getDay()];
+      H.push(`<p class="text-center small text-muted mb-3">${r} &middot; <strong>${n} ${n===1?'dag':'dagen'}</strong></p>`);
+    }
+  }
+
+  if(progress.length>=2){
+    const b=new Date(V[progress[0].id]).getTime(),e=new Date(V[progress[1].id]).getTime(),now=Date.now();
+    if(!isNaN(b)&&!isNaN(e)&&e>b){
+      const pct=Math.max(0,Math.min(100,Math.round((now-b)/(e-b)*100)));
+      const over=now>e,N=20,filled=over?N:Math.round(pct/100*N);
+      let segs='';for(let i=0;i<N;i++)segs+=`<div class="progress-bar flex-fill ${i<filled?'bg-primary':'bg-transparent'}"></div>`;
+      H.push(`<div class="d-flex justify-content-between mb-1"><span class="text-muted small">Voortgang</span><span class="small fw-semibold">${over?'Eindtijd verstreken':pct+'% verstreken'}</span></div><div class="progress mb-3">${segs}</div>`);
+    }
+  }
+
+  if(chips.length){
+    H.push(`<div class="d-flex flex-wrap gap-1 mb-3">`);
+    chips.forEach(f=>{if(V[f.id]){const m=mapMatch(f,V[f.id]);H.push(tag(f.id,`<span class="badge rounded-pill ${m?m.color:"text-bg-secondary"}">${esc(f.label)}: ${esc(V[f.id])}</span>`));}});
+    H.push(`</div>`);
+  }
+
+  if(details.length){
+    H.push(`<details class="border rounded p-2 mb-2"><summary class="text-muted small fw-semibold">Details</summary>`);
+    details.forEach(f=>{if(V[f.id]){const v=f.type==="date"?fmtDate(V[f.id]):V[f.id];H.push(tag(f.id,`<div class="d-flex justify-content-between align-items-center mt-2"><span class="small text-muted">${esc(f.label)}</span><span class="small fw-semibold">${esc(v)}</span></div>`));}});
+    H.push(`</details>`);
+  }
+
+  footers.forEach(f=>{if(V[f.id])H.push(tag(f.id,`<p class="text-muted mb-0 pt-2 border-top small">${esc(f.label)}: ${esc(fmtDate(V[f.id]))}</p>`));});
+
+  return H.join("");
+}
+
+/* =====================================================================
+   REGEN + EVENTS
+===================================================================== */
+function regen(){
+  el("#output").textContent=generate();
+  const p=el("#preview");
+  p.innerHTML=buildPreview();
+  p.querySelectorAll("[data-fieldsrc]").forEach(node=>{
+    node.addEventListener("click",ev=>{
+      ev.stopPropagation();
+      if(editMode==="edit") highlightField(node.dataset.fieldsrc);
+    });
+  });
+  if(editMode==="data") renderDataPanel();
+}
+
+el("#addField").addEventListener("click",()=>{fields.push(ensureField({id:"nieuw_veld",label:"Nieuw veld",type:"text",role:"regel",map:[]}));renderFields();regen();});
+el("#subtitleText").addEventListener("input",regen);
+el("#copyBtn").addEventListener("click",async e=>{
+  try{await navigator.clipboard.writeText(el("#output").textContent);const b=e.target,t=b.textContent;b.textContent="Gekopieerd ✓";b.classList.add("copied-flash");setTimeout(()=>{b.textContent=t;b.classList.remove("copied-flash");},1200);}
+  catch{alert("Kopiëren mislukt — selecteer handmatig.");}
+});
+el("#modeEdit").addEventListener("click",()=>{editMode="edit";el("#modeEdit").classList.add("active");el("#modeData").classList.remove("active");el("#dataPanel").classList.add("d-none");el("#preview").classList.add("editable");el("#previewHint").textContent="Klik op een onderdeel om het veld links te markeren.";regen();});
+el("#modeData").addEventListener("click",()=>{editMode="data";el("#modeData").classList.add("active");el("#modeEdit").classList.remove("active");el("#dataPanel").classList.remove("d-none");el("#preview").classList.remove("editable");el("#previewHint").textContent="Pas de testdata hierboven aan — het voorbeeld en de mappings reageren live.";renderDataPanel();regen();});
+
+/* init */
+renderFields();
+regen();
+</script>
+</body>
+</html>
