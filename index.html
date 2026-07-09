@@ -677,7 +677,7 @@ document.getElementById("copyBtn").addEventListener("click", async e=>{
     const b=e.target, t=b.textContent;
     b.textContent="Gekopieerd ✓"; b.classList.add("copied-flash");
     setTimeout(()=>{b.textContent=t; b.classList.remove("copied-flash");},1200);
-  }catch{ alert("Kopiëren mislukt — selecteer handmatig."); }
+  }catch{ alert("Kopiëren mislukt, selecteer handmatig."); }
 });
 
 /* init */
