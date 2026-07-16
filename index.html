@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Template Bouwer: Bootstrap</title>
+<title>Template Bouwer — Bootstrap popup-stijl</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
 <style>
   :root{
@@ -17,7 +17,6 @@
   .panel-title{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:#6b7684;font-weight:600;}
   .role-hint{font-size:.7rem;color:#8b95a1;}
 
-  /* ---- palet ---- */
   .palette-group + .palette-group{margin-top:1rem;}
   .palette-group-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:#9aa3ad;font-weight:700;margin-bottom:.35rem;}
   .palette-item{
@@ -27,23 +26,23 @@
   .palette-item:hover{border-color:var(--accent);box-shadow:0 0 0 2px rgba(47,74,107,.12);}
   .palette-item .pi-icon{font-size:1rem;width:1.2rem;text-align:center;flex-shrink:0;}
   .palette-item .pi-hint{font-size:.68rem;color:#9aa3ad;display:block;}
+  .palette-item[data-nestable="1"]{border-left:3px solid #7c9cbf;}
 
-  /* ---- canvas ---- */
   .canvas-shell{background:#eef1f4;border:1px dashed var(--line);border-radius:.5rem;padding:1rem;min-height:220px;}
-  .canvas-card{background:#fff;border:1px solid var(--line);border-radius:.5rem;padding:1rem;max-width:360px;margin:0 auto;box-shadow:0 6px 24px rgba(20,30,45,.08);}
+  .canvas-card{background:#fff;border:1px solid var(--line);border-radius:.5rem;padding:1rem;max-width:380px;margin:0 auto;box-shadow:0 6px 24px rgba(20,30,45,.08);}
   .cb-empty{color:#9aa3ad;}
   .canvas-block{position:relative;border-radius:.4rem;}
   .canvas-block:hover{outline:1px dashed rgba(47,74,107,.35);outline-offset:3px;}
   .cb-toolbar{font-size:.66rem;color:#9aa3ad;margin-bottom:.15rem;opacity:0;transition:opacity .1s;}
   .canvas-block:hover .cb-toolbar{opacity:1;}
   .cb-grip{cursor:grab;user-select:none;}
-  .cb-controls{background:#f8fafc;border:1px solid var(--line);border-radius:.35rem;padding:.35rem .5rem;margin-top:.3rem;display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;}
+  .cb-controls{background:#f8fafc;border:1px solid var(--line);border-radius:.35rem;padding:.4rem .5rem;margin-top:.3rem;display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;}
+  .cb-controls.stack{flex-direction:column;align-items:stretch;}
   .cb-controls select{font-size:.72rem;padding:.1rem .3rem;}
   .cb-controls .btn{font-size:.68rem;padding:.05rem .4rem;}
   .cb-item-row{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;width:100%;}
   .drop-indicator{height:3px;background:var(--accent);border-radius:2px;margin:4px 0;}
 
-  /* ---- inline "typ in het sjabloon" plekken ---- */
   .slot-ce{
     display:inline-block;min-width:1ch;padding:0 3px;border-radius:3px;
     background:rgba(47,74,107,.07);border-bottom:1px dashed rgba(47,74,107,.5);
@@ -52,7 +51,23 @@
   .slot-ce:focus{background:rgba(47,74,107,.16);}
   .slot-ce:empty:before{content:attr(data-placeholder);color:#9aa3ad;}
 
-  pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;tab-size:2;background:#0f1621;color:#d6e0ec;border-radius:.5rem;padding:1rem;max-height:420px;overflow:auto;white-space:pre;}
+  .rij-cols{display:flex;gap:.5rem;}
+  .rij-col{flex:1;min-width:0;position:relative;}
+  .rij-col-empty{
+    border:1.5px dashed var(--line);border-radius:.4rem;padding:.6rem .4rem;text-align:center;
+    background:#fafbfc;min-height:70px;display:flex;flex-direction:column;justify-content:center;gap:.3rem;
+  }
+  .rij-col-empty.dragover-col{border-color:var(--accent);background:rgba(47,74,107,.06);}
+  .rij-col-filled{border:1px solid transparent;border-radius:.4rem;padding:2px;position:relative;}
+  .rij-col-filled:hover{border-color:rgba(47,74,107,.3);}
+  .rij-col-clear{
+    position:absolute;top:-6px;right:-6px;width:18px;height:18px;line-height:16px;padding:0;
+    border-radius:50%;font-size:.7rem;z-index:2;
+  }
+  .quick-add-btns{display:flex;flex-wrap:wrap;gap:.25rem;justify-content:center;}
+  .quick-add-btns .btn{font-size:.66rem;padding:.1rem .35rem;}
+
+  pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;tab-size:2;background:#0f1621;color:#d6e0ec;border-radius:.5rem;padding:1rem;max-height:440px;overflow:auto;white-space:pre;}
   .btn-ink{background:var(--ink);color:#fff;}
   .btn-ink:hover{background:#0f1621;color:#fff;}
   .copied-flash{animation:flash .8s ease;}
@@ -64,23 +79,21 @@
 <header class="app-header py-4 mb-4">
   <div class="container">
     <h1 class="h4 mb-1">Template Bouwer</h1>
-    <p class="lead mb-0 small">Sleep of klik bouwstenen naar het sjabloon rechts, en typ de attribuutnaam direct op de gemarkeerde plek.</p>
+    <p class="lead mb-0 small">Basis-elementen (Tekst, Waarde, Badge, Icoon, Hero — met blauwe rand in het palet) kun je ook naast elkaar in een Rij-blok slepen. Typ de attribuutnaam direct op de gemarkeerde plek in het sjabloon.</p>
   </div>
 </header>
 
 <div class="container pb-5">
   <div class="row g-4">
 
-    <!-- LINKS: palet -->
     <div class="col-lg-4">
       <div class="panel p-3">
         <div class="panel-title mb-2">Bouwstenen</div>
         <div id="palette"></div>
-        <div class="role-hint mt-3">Klik om toe te voegen aan het eind, of sleep naar een specifieke plek in het sjabloon. Klik daarna op een gemarkeerd woord in het sjabloon en typ de attribuutnaam.</div>
+        <div class="role-hint mt-3">Klik om toe te voegen, of sleep naar een plek in het sjabloon. Elementen met een blauwe rand kun je ook in een Rij-kolom slepen (of daar met de knopjes toevoegen).</div>
       </div>
     </div>
 
-    <!-- RECHTS: canvas + code -->
     <div class="col-lg-8">
       <div class="panel p-3 mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -109,7 +122,6 @@
 ===================================================================== */
 function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function tokenize(raw){
-  // {veld} -> ${veld ?? ''} , rest blijft letterlijke tekst
   return String(raw||"").replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, (m,id)=>"\u0024{"+id+" ?? ''}");
 }
 let uid=0;
@@ -131,10 +143,23 @@ function selectHTML(blockId, slot, current, idx, field){
     ${BS_COLORS.map(c=>`<option value="${c.v}" ${current===c.v?"selected":""}>${c.label}</option>`).join("")}
   </select>`;
 }
-function typeSelectHTML(blockId, slot, idx, current){
+function modeSelectHTML(blockId, current){
+  return `<select class="form-select form-select-sm" style="max-width:190px" data-block="${blockId}" data-slot="mode">
+    <option value="vast" ${current==="vast"?"selected":""}>Vaste kleur</option>
+    <option value="conditioneel" ${current==="conditioneel"?"selected":""}>Kleur o.b.v. waarde</option>
+  </select>`;
+}
+function typeSelectHTML(blockId, slot, idx, current, field){
   const opts=[["tekst","Tekst"],["getal","Getal"],["datum","Datum"]];
-  return `<select class="form-select form-select-sm" style="max-width:90px" data-block="${blockId}" data-slot="${slot}" data-idx="${idx}" data-field="type">
+  const idxAttr = idx!=null ? ` data-idx="${idx}"` : "";
+  const fieldName = field || "type";
+  return `<select class="form-select form-select-sm" style="max-width:90px" data-block="${blockId}" data-slot="${slot}"${idxAttr} data-field="${fieldName}">
     ${opts.map(([v,l])=>`<option value="${v}" ${current===v?"selected":""}>${l}</option>`).join("")}
+  </select>`;
+}
+function plainSelectHTML(blockId, slot, current, options, width){
+  return `<select class="form-select form-select-sm" style="max-width:${width||110}px" data-block="${blockId}" data-slot="${slot}">
+    ${options.map(([v,l])=>`<option value="${v}" ${current===v?"selected":""}>${l}</option>`).join("")}
   </select>`;
 }
 function ceSpan(blockId, slot, value, placeholder, idx, field){
@@ -150,81 +175,351 @@ function addBtn(blockId, slot, label){
   return `<button class="btn btn-sm btn-outline-secondary" data-action="add-item" data-block="${blockId}" data-slot="${slot}">+ ${esc(label)}</button>`;
 }
 
+/* ---- mapping-regel-editor (waarde -> kleur/label, of waarde -> url) ---- */
+function regelRowHTML(blockId, slot, i, r, target){
+  const typeSel = `<select class="form-select form-select-sm" style="max-width:96px" data-block="${blockId}" data-slot="${slot}" data-idx="${i}" data-field="type">
+    <option value="exact" ${r.type==="exact"?"selected":""}>is exact</option>
+    <option value="drempel" ${r.type==="drempel"?"selected":""}>&ge; drempel</option>
+  </select>`;
+  const when = ceSpan(blockId, slot, r.when, "waarde", i, "when");
+  const targetInput = target==="kleur"
+    ? selectHTML(blockId, slot, r.kleur||"text-bg-secondary", i, "kleur")
+    : ceSpan(blockId, slot, r.url, "URL", i, "url");
+  const labelInput = target==="kleur" ? ceSpan(blockId, slot, r.label, "label (optioneel)", i, "label") : "";
+  return `<div class="cb-item-row">
+    ${typeSel} ${when} <span class="role-hint">&rarr;</span> ${targetInput} ${labelInput} ${delBtn(blockId, slot, i)}
+  </div>`;
+}
+function mappingControlsHTML(b, regelsSlot, bronSlot, fallbackSlot, target){
+  const rows = b.props[regelsSlot].map((r,i)=>regelRowHTML(b.id, regelsSlot, i, r, target)).join("");
+  const fb = b.props[fallbackSlot];
+  const fbTarget = target==="kleur"
+    ? selectHTML(b.id, fallbackSlot, fb.kleur||"text-bg-secondary", null, "kleur")
+    : ceSpan(b.id, fallbackSlot, fb.url, "URL", null, "url");
+  const fbLabel = target==="kleur" ? ceSpan(b.id, fallbackSlot, fb.label, "label (optioneel)", null, "label") : "";
+  return `
+    <div class="cb-controls stack">
+      <div class="cb-item-row"><span class="role-hint">Bron-attribuut:</span> ${ceSpan(b.id, bronSlot, b.props[bronSlot], "attribuut")}</div>
+      ${rows}
+      <div class="cb-item-row">${addBtn(b.id, regelsSlot, "regel")}</div>
+      <div class="cb-item-row"><span class="role-hint">Standaard (fallback):</span> ${fbTarget} ${fbLabel}</div>
+    </div>`;
+}
+
 /* format-expressies voor gegenereerde code (pure tekstopbouw, geen eval) */
-const dfmt = id => "\u0024{"+id+" ? new Date("+id+").toLocaleString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}";
+const dfmt      = id => "\u0024{"+id+" ? new Date("+id+").toLocaleString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}";
+const dfmtKort   = id => "\u0024{"+id+" ? new Date("+id+").toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}";
+const dfmtLang   = id => "\u0024{"+id+" ? new Date("+id+").toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}";
+function dateExprFor(id, formaat){
+  if(formaat==="lang") return dfmtLang(id);
+  if(formaat==="metTijd") return dfmt(id);
+  return dfmtKort(id);
+}
+function getalExprFor(id, decimalen){
+  if(decimalen==="geen") return "\u0024{"+id+" ?? 0}";
+  const n = parseInt(decimalen,10) || 0;
+  return "\u0024{"+id+" != null ? Number("+id+").toFixed("+n+").replace('.', ',') : '-'}";
+}
 const valExpr = (id, type) => {
   if(type==="datum") return dfmt(id);
   if(type==="getal") return "\u0024{"+id+" ?? 0}";
   return "\u0024{"+id+" || '-'}";
 };
 
+/* ternary-keten voor kleur/url/label o.b.v. regels+fallback */
+function condExpr(attr, r){
+  return r.type==="drempel"
+    ? `${attr} >= ${parseFloat(r.when)||0}`
+    : `String(${attr}) === ${JSON.stringify(String(r.when||""))}`;
+}
+function buildValueExpr(attr, regels, fallback, field){
+  let expr = JSON.stringify(fallback[field] || (field==="kleur" ? "text-bg-secondary" : ""));
+  for(let i=regels.length-1;i>=0;i--){
+    const r=regels[i];
+    const val = JSON.stringify(r[field] || (field==="kleur" ? "text-bg-secondary" : ""));
+    expr = `(${condExpr(attr,r)} ? ${val} : ${expr})`;
+  }
+  return expr;
+}
+function buildLabelExpr(attr, regels, fallback){
+  let expr = fallback.label ? JSON.stringify(fallback.label) : attr;
+  for(let i=regels.length-1;i>=0;i--){
+    const r=regels[i];
+    const val = r.label ? JSON.stringify(r.label) : attr;
+    expr = `(${condExpr(attr,r)} ? ${val} : ${expr})`;
+  }
+  return expr;
+}
+
+/* welke bloktypes mogen genest worden in een Rij-kolom */
+const NESTABLE_TYPES = ["tekst","waarde","badge","icoon","hero"];
+const NESTABLE_LABELS = {tekst:"Tekst", waarde:"Waarde", badge:"Badge", icoon:"Icoon", hero:"Hero"};
+
 /* =====================================================================
-   BLOK-DEFINITIES (structuur-blokken; geen kleur-mapping/conditie-logica)
+   BLOK-DEFINITIES
 ===================================================================== */
 const BLOCK_DEFS = {
 
   kop:{
-    label:"Kop (titel + subtitel)", icon:"🏷️", hint:"Titel met lijn eronder",
-    defaultProps:()=>({titel:"{titel}", subtitel:""}),
+    label:"Kop (titel + subtitel)", icon:"🏷️", hint:"Titel, subtitel, optioneel icoon",
+    defaultProps:()=>({
+      titel:"{titel}", subtitel:"",
+      icoonAan:false, icoonMode:"vast", icoonUrl:"",
+      icoonBron:"", icoonRegels:[], icoonFallback:{url:""}
+    }),
     render(b){
+      const iconControls = b.props.icoonAan ? `
+        <div class="cb-controls stack">
+          <div class="cb-item-row">
+            <span class="role-hint">Icoon-modus:</span>
+            <select class="form-select form-select-sm" style="max-width:170px" data-block="${b.id}" data-slot="icoonMode">
+              <option value="vast" ${b.props.icoonMode==="vast"?"selected":""}>Vaste URL</option>
+              <option value="conditioneel" ${b.props.icoonMode==="conditioneel"?"selected":""}>URL o.b.v. waarde</option>
+            </select>
+          </div>
+          ${ b.props.icoonMode==="vast"
+              ? `<div class="cb-item-row"><span class="role-hint">URL:</span> ${ceSpan(b.id,"icoonUrl",b.props.icoonUrl,"https://... (mag {veld} bevatten)")}</div>`
+              : mappingControlsHTML(b,"icoonRegels","icoonBron","icoonFallback","url")
+          }
+        </div>` : "";
       return `
         <div class="pb-2 mb-3 border-bottom">
-          <h6 class="mb-0">${ceSpan(b.id,"titel",b.props.titel,"Titel")}</h6>
-          <small class="text-muted">${ceSpan(b.id,"subtitel",b.props.subtitel,"Subtitel (optioneel)")}</small>
-        </div>`;
+          <div class="d-flex align-items-center gap-2">
+            ${b.props.icoonAan ? `<span style="width:22px;height:22px;border-radius:4px;background:#e9edf1;display:inline-block;flex-shrink:0;"></span>` : ""}
+            <div>
+              <h6 class="mb-0">${ceSpan(b.id,"titel",b.props.titel,"Titel")}</h6>
+              <small class="text-muted">${ceSpan(b.id,"subtitel",b.props.subtitel,"Subtitel (optioneel)")}</small>
+            </div>
+          </div>
+        </div>
+        <div class="cb-controls">
+          <label class="role-hint m-0" style="cursor:pointer;"><input type="checkbox" data-block="${b.id}" data-slot="icoonAan" ${b.props.icoonAan?"checked":""}> Icoon in de kop tonen</label>
+        </div>
+        ${iconControls}`;
     },
     code(b){
       const t = tokenize(b.props.titel) || "Titel";
-      const lines=[`  <!-- Kop -->`,`  <div class="pb-2 mb-3 border-bottom">`,`    <h6 class="mb-0">${t}</h6>`];
-      if((b.props.subtitel||"").trim()!=="") lines.push(`    <small class="text-muted">${tokenize(b.props.subtitel)}</small>`);
+      const lines=[`  <!-- Kop -->`,`  <div class="d-flex align-items-center pb-2 mb-3 border-bottom" style="gap:10px;">`];
+      if(b.props.icoonAan){
+        let src;
+        if(b.props.icoonMode==="conditioneel"){
+          const bron=b.props.icoonBron||"veld";
+          src = "\u0024{"+buildValueExpr(bron, b.props.icoonRegels, b.props.icoonFallback, "url")+"}";
+        } else {
+          src = tokenize(b.props.icoonUrl);
+        }
+        lines.push(`    <img src="${src}" width="24" height="24" style="width:24px;height:24px;flex-shrink:0;" alt="">`);
+      }
+      lines.push(`    <div style="min-width:0;">`);
+      lines.push(`      <h6 class="mb-0">${t}</h6>`);
+      if((b.props.subtitel||"").trim()!=="") lines.push(`      <small class="text-muted">${tokenize(b.props.subtitel)}</small>`);
+      lines.push(`    </div>`);
       lines.push(`  </div>`);
       return lines;
     }
   },
 
-  badge:{
-    label:"Badge (pill)", icon:"🔖", hint:"Losse gekleurde 'pill'",
-    defaultProps:()=>({tekst:"{status}", kleur:"text-bg-secondary"}),
+  /* ---------------- BASIS-ELEMENT: Tekst ---------------- */
+  tekst:{
+    label:"Tekst", icon:"🔤", hint:"Vrije tekst, mag {veld} bevatten", nestable:true,
+    defaultProps:()=>({tekst:"{titel}", grootte:"normaal"}),
     render(b){
+      const sizeOpts=[["kop","Kop (h6)"],["normaal","Normaal"],["klein","Klein"],["gedempt","Klein, grijs"]];
+      return `
+        <div class="mb-2">${renderTekst(b.props.tekst, b.props.grootte, ceSpan(b.id,"tekst",b.props.tekst,"Tekst"))}</div>
+        <div class="cb-controls">
+          <span class="role-hint">Grootte</span>${plainSelectHTML(b.id,"grootte",b.props.grootte,sizeOpts,130)}
+        </div>`;
+    },
+    code(b){
+      const t = tokenize(b.props.tekst) || "";
+      const tag = b.props.grootte==="kop" ? `<h6 class="mb-0">${t}</h6>`
+        : b.props.grootte==="klein" ? `<div class="small">${t}</div>`
+        : b.props.grootte==="gedempt" ? `<small class="text-muted">${t}</small>`
+        : `<div>${t}</div>`;
+      return [`  ${tag}`];
+    }
+  },
+
+  /* ---------------- BASIS-ELEMENT: Waarde ---------------- */
+  waarde:{
+    label:"Waarde", icon:"🔢", hint:"Eén attribuut: tekst, getal of datum", nestable:true,
+    defaultProps:()=>({
+      attribuut:"veld", label:"Label", type:"tekst",
+      weergave:"los", grootte:"normaal",
+      eenheid:"", decimalen:"geen", datumformaat:"kort"
+    }),
+    render(b){
+      const valSlot = ceSpan(b.id,"attribuut",b.props.attribuut,"attribuut");
+      const labelSlot = ceSpan(b.id,"label",b.props.label,"Label");
+      const sizeClass = b.props.grootte==="groot" ? "display-6" : "fs-4";
+      const eenheidHtml = b.props.type==="getal" ? ` <small class="fs-6 fw-normal text-muted">${ceSpan(b.id,"eenheid",b.props.eenheid,"eenheid")}</small>` : "";
+
+      const inner = b.props.weergave==="kader"
+        ? `<div class="p-2 rounded border h-100 text-center">
+             <div class="${sizeClass==='display-6'?'fs-5':'fs-5'} fw-semibold lh-1">${valSlot}${eenheidHtml}</div>
+             <small class="text-muted">${labelSlot}</small>
+           </div>`
+        : `<div class="text-center">
+             <small class="d-block text-muted mb-1">${labelSlot}</small>
+             <div class="${sizeClass} fw-bold lh-1">${valSlot}${eenheidHtml}</div>
+           </div>`;
+
+      let extraControls = "";
+      if(b.props.type==="getal"){
+        extraControls = `<span class="role-hint">Decimalen</span>${plainSelectHTML(b.id,"decimalen",b.props.decimalen,[["geen","geen afronding"],["0","0"],["1","1"],["2","2"]],110)}`;
+      } else if(b.props.type==="datum"){
+        extraControls = `<span class="role-hint">Formaat</span>${plainSelectHTML(b.id,"datumformaat",b.props.datumformaat,[["kort","kort"],["lang","lang"],["metTijd","met tijd"]],110)}`;
+      }
+
+      return `
+        <div class="mb-2">${inner}</div>
+        <div class="cb-controls">
+          <span class="role-hint">Type</span>${plainSelectHTML(b.id,"type",b.props.type,[["tekst","Tekst"],["getal","Getal"],["datum","Datum"]],90)}
+          <span class="role-hint">Weergave</span>${plainSelectHTML(b.id,"weergave",b.props.weergave,[["los","Los"],["kader","In kader"]],100)}
+          <span class="role-hint">Grootte</span>${plainSelectHTML(b.id,"grootte",b.props.grootte,[["normaal","Normaal"],["groot","Groot"]],100)}
+          ${extraControls}
+        </div>`;
+    },
+    code(b){
+      const attr = b.props.attribuut || "veld";
+      const sizeClass = b.props.grootte==="groot" ? "display-6" : "fs-4";
+      let valExprStr;
+      if(b.props.type==="getal") valExprStr = getalExprFor(attr, b.props.decimalen);
+      else if(b.props.type==="datum") valExprStr = dateExprFor(attr, b.props.datumformaat);
+      else valExprStr = "\u0024{"+attr+" || '-'}";
+
+      const eenheid = (b.props.type==="getal" && (b.props.eenheid||"").trim()!=="")
+        ? ` <small class="fs-6 fw-normal text-muted">${tokenize(b.props.eenheid)}</small>` : "";
+
+      if(b.props.weergave==="kader"){
+        return [
+          `  <div class="p-2 rounded border h-100 text-center">`,
+          `    <div class="fs-5 fw-semibold lh-1">${valExprStr}${eenheid}</div>`,
+          `    <small class="text-muted">${tokenize(b.props.label)}</small>`,
+          `  </div>`
+        ];
+      }
+      return [
+        `  <div class="text-center">`,
+        `    <small class="d-block text-muted mb-1">${tokenize(b.props.label)}</small>`,
+        `    <div class="${sizeClass} fw-bold lh-1">${valExprStr}${eenheid}</div>`,
+        `  </div>`
+      ];
+    }
+  },
+
+  badge:{
+    label:"Badge (pill) 🎨", icon:"🔖", hint:"Vast of kleur o.b.v. waarde", nestable:true,
+    defaultProps:()=>({
+      mode:"vast", tekst:"{status}", kleur:"text-bg-secondary",
+      bronAttribuut:"niveau",
+      regels:[{type:"exact", when:"Hoog", kleur:"text-bg-danger", label:""}],
+      fallback:{kleur:"text-bg-secondary", label:""}
+    }),
+    render(b){
+      if(b.props.mode==="conditioneel"){
+        return `
+          <div class="mb-2"><span class="badge rounded-pill text-bg-secondary">badge (kleur o.b.v. waarde)</span></div>
+          <div class="cb-controls">${modeSelectHTML(b.id, b.props.mode)}</div>
+          ${mappingControlsHTML(b,"regels","bronAttribuut","fallback","kleur")}`;
+      }
       return `
         <div class="mb-2"><span class="badge rounded-pill ${b.props.kleur}">${ceSpan(b.id,"tekst",b.props.tekst,"Tekst")}</span></div>
         <div class="cb-controls">
+          ${modeSelectHTML(b.id, b.props.mode)}
           <span class="role-hint">Kleur</span>${selectHTML(b.id,"kleur",b.props.kleur)}
         </div>`;
     },
     code(b){
+      if(b.props.mode==="conditioneel"){
+        const attr=b.props.bronAttribuut||"veld";
+        const colorExpr=buildValueExpr(attr,b.props.regels,b.props.fallback,"kleur");
+        const labelExpr=buildLabelExpr(attr,b.props.regels,b.props.fallback);
+        return [`  <span class="badge rounded-pill \u0024{${colorExpr}}">\u0024{${labelExpr}}</span>`];
+      }
       return [`  <span class="badge rounded-pill ${b.props.kleur}">${tokenize(b.props.tekst)}</span>`];
     }
   },
 
-  cijferrij:{
-    label:"Cijferrij (1-4 kaders)", icon:"🔢", hint:"Statistieken naast elkaar",
-    defaultProps:()=>({kolommen:[{label:"Aantal", attribuut:"aantal"}]}),
+  /* ---------------- BASIS-ELEMENT: Icoon (standalone) ---------------- */
+  icoon:{
+    label:"Icoon", icon:"🖼️", hint:"Los icoon, vast of o.b.v. waarde", nestable:true,
+    defaultProps:()=>({
+      mode:"vast", url:"", grootte:"normaal",
+      bronAttribuut:"niveau", regels:[{type:"exact", when:"A", url:""}], fallback:{url:""}
+    }),
     render(b){
-      const cols=b.props.kolommen;
-      const boxes=cols.map((c,i)=>`
-        <div class="col">
-          <div class="p-2 rounded border h-100 text-center">
-            <div class="fs-5 fw-semibold lh-1">${ceSpan(b.id,"kolommen",c.attribuut,"attribuut",i,"attribuut")}</div>
-            <small class="text-muted">${ceSpan(b.id,"kolommen",c.label,"Label",i,"label")}</small>
-          </div>
-        </div>`).join("");
-      return `
-        <div class="row g-2 mb-3">${boxes}</div>
-        <div class="cb-controls">
-          ${addBtn(b.id,"kolommen","kolom")} 
-          ${cols.length>1 ? cols.map((_,i)=>delBtn(b.id,"kolommen",i)).join(" ") : ""}
+      const sizePx = b.props.grootte==="klein" ? 20 : b.props.grootte==="groot" ? 40 : 28;
+      const preview = `<div class="mb-2 text-center"><span style="display:inline-block;width:${sizePx}px;height:${sizePx}px;border-radius:4px;background:#e9edf1;"></span></div>`;
+      const modeSel = `<select class="form-select form-select-sm" style="max-width:170px" data-block="${b.id}" data-slot="mode">
+        <option value="vast" ${b.props.mode==="vast"?"selected":""}>Vaste URL</option>
+        <option value="conditioneel" ${b.props.mode==="conditioneel"?"selected":""}>URL o.b.v. waarde</option>
+      </select>`;
+      const sizeSel = plainSelectHTML(b.id,"grootte",b.props.grootte,[["klein","Klein"],["normaal","Normaal"],["groot","Groot"]],100);
+      if(b.props.mode==="conditioneel"){
+        return `${preview}
+          <div class="cb-controls">${modeSel} <span class="role-hint">Grootte</span>${sizeSel}</div>
+          ${mappingControlsHTML(b,"regels","bronAttribuut","fallback","url")}`;
+      }
+      return `${preview}
+        <div class="cb-controls stack">
+          <div class="cb-item-row">${modeSel} <span class="role-hint">Grootte</span>${sizeSel}</div>
+          <div class="cb-item-row"><span class="role-hint">URL:</span> ${ceSpan(b.id,"url",b.props.url,"https://... (mag {veld} bevatten)")}</div>
         </div>`;
     },
     code(b){
-      const lines=[`  <!-- Cijfers -->`,`  <div class="row g-2 text-center mb-3">`];
-      b.props.kolommen.forEach(c=>{
-        const attr=c.attribuut||"veld";
+      const px = b.props.grootte==="klein" ? 20 : b.props.grootte==="groot" ? 40 : 28;
+      let src;
+      if(b.props.mode==="conditioneel"){
+        const bron=b.props.bronAttribuut||"veld";
+        src = "\u0024{"+buildValueExpr(bron, b.props.regels, b.props.fallback, "url")+"}";
+      } else {
+        src = tokenize(b.props.url);
+      }
+      return [`  <img src="${src}" width="${px}" height="${px}" style="width:${px}px;height:${px}px;" alt="">`];
+    }
+  },
+
+  /* ---------------- LAY-OUT: Rij (kolommen) ---------------- */
+  rij:{
+    label:"Rij (kolommen naast elkaar)", icon:"▦", hint:"Sleep basis-elementen naast elkaar",
+    defaultProps:()=>({kolommen:[{child:null},{child:null}]}),
+    render(b){
+      const cols = b.props.kolommen.map((col,ci)=>{
+        if(col.child){
+          const child=col.child;
+          const def=BLOCK_DEFS[child.type];
+          return `<div class="rij-col" data-rij-id="${b.id}" data-col-idx="${ci}">
+            <div class="rij-col-filled" data-nested-block-id="${child.id}">
+              <button class="btn btn-sm btn-outline-danger rij-col-clear" data-action="clear-column" data-block="${b.id}" data-idx="${ci}" title="Leegmaken">×</button>
+              ${def.render(child)}
+            </div>
+          </div>`;
+        }
+        const quickBtns = NESTABLE_TYPES.map(t=>`<button class="btn btn-sm btn-outline-secondary" data-action="fill-column" data-block="${b.id}" data-idx="${ci}" data-childtype="${t}">${NESTABLE_LABELS[t]}</button>`).join("");
+        return `<div class="rij-col" data-rij-id="${b.id}" data-col-idx="${ci}">
+          <div class="rij-col-empty">
+            <span class="role-hint">sleep hierheen, of:</span>
+            <div class="quick-add-btns">${quickBtns}</div>
+          </div>
+        </div>`;
+      }).join("");
+      return `
+        <div class="rij-cols mb-2">${cols}</div>
+        <div class="cb-controls">
+          ${b.props.kolommen.length<4 ? `<button class="btn btn-sm btn-outline-secondary" data-action="add-column" data-block="${b.id}">+ kolom</button>` : ""}
+          ${b.props.kolommen.length>1 ? `<button class="btn btn-sm btn-outline-secondary" data-action="remove-column" data-block="${b.id}">- kolom</button>` : ""}
+        </div>`;
+    },
+    code(b){
+      const lines=[`  <!-- Rij -->`,`  <div class="row g-2 mb-3">`];
+      b.props.kolommen.forEach(col=>{
         lines.push(`    <div class="col">`);
-        lines.push(`      <div class="p-2 rounded border h-100">`);
-        lines.push(`        <div class="fs-4 fw-semibold lh-1">\u0024{${attr} ?? 0}</div>`);
-        lines.push(`        <small class="text-muted">${tokenize(c.label)}</small>`);
-        lines.push(`      </div>`);
+        if(col.child){
+          const childLines = BLOCK_DEFS[col.child.type].code(col.child);
+          childLines.forEach(l=>lines.push(`  ${l}`));
+        }
         lines.push(`    </div>`);
       });
       lines.push(`  </div>`);
@@ -233,49 +528,47 @@ const BLOCK_DEFS = {
   },
 
   hero:{
-    label:"Hero-blok (grote waarde)", icon:"🎯", hint:"Groot getal/tekst, gekleurde achtergrond",
-    defaultProps:()=>({label:"Waarde", attribuut:"niveau", kleur:"text-bg-secondary"}),
+    label:"Hero-blok 🎨", icon:"🎯", hint:"Groot getal, vast of gekleurd o.b.v. waarde", nestable:true,
+    defaultProps:()=>({
+      mode:"vast", label:"Waarde", attribuut:"niveau", kleur:"text-bg-secondary",
+      bronAttribuut:"niveau",
+      regels:[{type:"exact", when:"Hoog", kleur:"text-bg-danger", label:""}],
+      fallback:{kleur:"text-bg-secondary", label:""}
+    }),
     render(b){
+      const labelSlot = ceSpan(b.id,"label",b.props.label,"Label");
+      const valueSlot = ceSpan(b.id,"attribuut",b.props.attribuut,"attribuut");
+      if(b.props.mode==="conditioneel"){
+        return `
+          <div class="text-center p-3 mb-3 rounded text-bg-secondary">
+            <small class="d-block mb-1">${labelSlot}</small>
+            <div class="display-6 fw-bold lh-1">${valueSlot}</div>
+          </div>
+          <div class="cb-controls">${modeSelectHTML(b.id, b.props.mode)}</div>
+          ${mappingControlsHTML(b,"regels","bronAttribuut","fallback","kleur")}`;
+      }
       return `
         <div class="text-center p-3 mb-3 rounded ${b.props.kleur}">
-          <small class="d-block mb-1">${ceSpan(b.id,"label",b.props.label,"Label")}</small>
-          <div class="display-6 fw-bold lh-1">${ceSpan(b.id,"attribuut",b.props.attribuut,"attribuut")}</div>
+          <small class="d-block mb-1">${labelSlot}</small>
+          <div class="display-6 fw-bold lh-1">${valueSlot}</div>
         </div>
-        <div class="cb-controls"><span class="role-hint">Kleur</span>${selectHTML(b.id,"kleur",b.props.kleur)}</div>`;
+        <div class="cb-controls">${modeSelectHTML(b.id, b.props.mode)} <span class="role-hint">Kleur</span>${selectHTML(b.id,"kleur",b.props.kleur)}</div>`;
     },
     code(b){
       const attr=b.props.attribuut||"veld";
-      return [
-        `  <!-- ${b.props.label||"Hero"} -->`,
-        `  <div class="text-center p-3 mb-3 rounded ${b.props.kleur}">`,
-        `    <small class="d-block mb-1">${tokenize(b.props.label).toUpperCase?tokenize(b.props.label):tokenize(b.props.label)}</small>`,
-        `    <div class="display-6 fw-bold lh-1">\u0024{${attr} ?? '-'}</div>`,
-        `  </div>`
-      ];
-    }
-  },
-
-  meetwaarde:{
-    label:"Meetwaarde (getal + eenheid)", icon:"📏", hint:"Bijv. eenheid in m",
-    defaultProps:()=>({label:"Meetwaarde", attribuut:"waarde", eenheid:"m"}),
-    render(b){
-      return `
-        <div class="text-center mb-3">
-          <small class="d-block text-muted mb-1">${ceSpan(b.id,"label",b.props.label,"Label")}</small>
-          <div class="display-6 fw-bold lh-1">${ceSpan(b.id,"attribuut",b.props.attribuut,"attribuut")}
-            <small class="fs-6 fw-normal text-muted">${ceSpan(b.id,"eenheid",b.props.eenheid,"eenheid")}</small>
-          </div>
-        </div>`;
-    },
-    code(b){
-      const attr=b.props.attribuut||"veld";
-      return [
-        `  <!-- ${b.props.label||"Meetwaarde"} -->`,
-        `  <div class="text-center mb-3">`,
-        `    <small class="d-block text-muted mb-1">${tokenize(b.props.label)}</small>`,
-        `    <div class="display-6 fw-bold lh-1">\u0024{${attr} != null ? String(${attr}).replace('.', ',') : '-'} <small class="fs-6 fw-normal text-muted">${tokenize(b.props.eenheid)}</small></div>`,
-        `  </div>`
-      ];
+      const lines=[`  <!-- ${b.props.label||"Hero"} -->`];
+      let colorClass;
+      if(b.props.mode==="conditioneel"){
+        const bronAttr=b.props.bronAttribuut||attr;
+        colorClass = "\u0024{"+buildValueExpr(bronAttr,b.props.regels,b.props.fallback,"kleur")+"}";
+      } else {
+        colorClass = b.props.kleur;
+      }
+      lines.push(`  <div class="text-center p-3 mb-3 rounded ${colorClass}">`);
+      lines.push(`    <small class="d-block mb-1">${tokenize(b.props.label)}</small>`);
+      lines.push(`    <div class="display-6 fw-bold lh-1">\u0024{${attr} ?? '-'}</div>`);
+      lines.push(`  </div>`);
+      return lines;
     }
   },
 
@@ -297,7 +590,7 @@ const BLOCK_DEFS = {
       return `
         <ul class="list-group list-group-flush mb-2">${rows}</ul>
         <div class="cb-controls">${addBtn(b.id,"rijen","regel")}</div>
-        <div class="cb-controls">${controls}</div>`;
+        <div class="cb-controls stack">${controls}</div>`;
     },
     code(b){
       const lines=[`  <!-- Regels -->`,`  <ul class="list-group list-group-flush mb-2">`];
@@ -379,25 +672,41 @@ const BLOCK_DEFS = {
   },
 
   chips:{
-    label:"Badge-rij (chips)", icon:"🏷️", hint:"Alleen zichtbaar als waarde aanwezig is",
-    defaultProps:()=>({kleur:"text-bg-secondary", items:[{label:"Label", attribuut:"veld"}]}),
+    label:"Badge-rij (chips) 🎨", icon:"🏷️", hint:"Alleen zichtbaar als waarde aanwezig is",
+    defaultProps:()=>({
+      mode:"vast", kleur:"text-bg-secondary",
+      items:[{label:"Label", attribuut:"veld"}],
+      bronAttribuut:"type",
+      regels:[{type:"exact", when:"Woon", kleur:"text-bg-primary", label:""}],
+      fallback:{kleur:"text-bg-secondary", label:""}
+    }),
     render(b){
       const chips=b.props.items.map((it,i)=>`
-        <span class="badge rounded-pill ${b.props.kleur}">${ceSpan(b.id,"items",it.label,"Label",i,"label")}: ${ceSpan(b.id,"items",it.attribuut,"attribuut",i,"attribuut")}</span>`).join(" ");
+        <span class="badge rounded-pill ${b.props.mode==="vast"?b.props.kleur:"text-bg-secondary"}">${ceSpan(b.id,"items",it.label,"Label",i,"label")}: ${ceSpan(b.id,"items",it.attribuut,"attribuut",i,"attribuut")}</span>`).join(" ");
       const removeRow=b.props.items.map((_,i)=>delBtn(b.id,"items",i)).join(" ");
+      const mapping = b.props.mode==="conditioneel" ? mappingControlsHTML(b,"regels","bronAttribuut","fallback","kleur") : "";
       return `
         <div class="d-flex flex-wrap gap-1 mb-3">${chips}</div>
         <div class="cb-controls">
-          <span class="role-hint">Kleur</span>${selectHTML(b.id,"kleur",b.props.kleur)}
+          ${modeSelectHTML(b.id, b.props.mode)}
+          ${b.props.mode==="vast" ? `<span class="role-hint">Kleur</span>${selectHTML(b.id,"kleur",b.props.kleur)}` : ""}
           ${addBtn(b.id,"items","chip")}
           ${removeRow}
-        </div>`;
+        </div>
+        ${mapping}`;
     },
     code(b){
       const lines=[`  <!-- Chips -->`,`  <div class="d-flex flex-wrap gap-1 mb-3">`];
+      let colorClass;
+      if(b.props.mode==="conditioneel"){
+        const bronAttr=b.props.bronAttribuut||"veld";
+        colorClass = "\u0024{"+buildValueExpr(bronAttr,b.props.regels,b.props.fallback,"kleur")+"}";
+      } else {
+        colorClass = b.props.kleur;
+      }
       b.props.items.forEach(it=>{
         const attr=it.attribuut||"veld";
-        lines.push(`    \u0024{${attr} ? \`<span class="badge rounded-pill ${b.props.kleur}">${tokenize(it.label)}: \u0024{${attr}}</span>\` : ''}`);
+        lines.push(`    \u0024{${attr} ? \`<span class="badge rounded-pill ${colorClass}">${tokenize(it.label)}: \u0024{${attr}}</span>\` : ''}`);
       });
       lines.push(`  </div>`);
       return lines;
@@ -425,13 +734,14 @@ const BLOCK_DEFS = {
           ${rows}
         </details>
         <div class="cb-controls">${addBtn(b.id,"rijen","regel")}</div>
-        <div class="cb-controls">${controls}</div>`;
+        <div class="cb-controls stack">${controls}</div>`;
     },
     code(b){
       const lines=[`  <!-- ${b.props.titel||"Details"} -->`,`  <details class="border rounded p-2 mb-2">`,`    <summary class="text-muted small fw-semibold">${tokenize(b.props.titel)||"Details"}</summary>`];
       b.props.rijen.forEach(r=>{
         const attr=r.attribuut||"veld";
-        lines.push(`    \u0024{${attr} ? \`<div class="d-flex justify-content-between align-items-center mt-2"><span class="small text-muted">${tokenize(r.label)}</span><span class="small fw-semibold">${r.type==="datum"?("\u0024{new Date("+attr+").toLocaleString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}"):("\u0024{"+attr+"}")}</span></div>\` : ''}`);
+        const val = r.type==="datum" ? dfmt(attr) : r.type==="getal" ? ("\u0024{"+attr+" ?? 0}") : ("\u0024{"+attr+"}");
+        lines.push(`    \u0024{${attr} ? \`<div class="d-flex justify-content-between align-items-center mt-2"><span class="small text-muted">${tokenize(r.label)}</span><span class="small fw-semibold">${val}</span></div>\` : ''}`);
       });
       lines.push(`  </details>`);
       return lines;
@@ -439,14 +749,26 @@ const BLOCK_DEFS = {
   },
 
   footer:{
-    label:"Footer (bijgewerkt op)", icon:"🕓", hint:"Kleine regel onderaan",
-    defaultProps:()=>({label:"Bijgewerkt", attribuut:"last_update"}),
+    label:"Footer (kleine regel onderaan)", icon:"🕓", hint:"Nu met instelbaar type: tekst/getal/datum",
+    defaultProps:()=>({label:"Bijgewerkt", attribuut:"last_update", type:"datum", datumformaat:"metTijd"}),
     render(b){
-      return `<p class="text-muted mb-0 pt-2 border-top small">${ceSpan(b.id,"label",b.props.label,"Label")}: ${ceSpan(b.id,"attribuut",b.props.attribuut,"attribuut")}</p>`;
+      const dfSel = b.props.type==="datum"
+        ? `<span class="role-hint">Formaat</span>${plainSelectHTML(b.id,"datumformaat",b.props.datumformaat,[["kort","kort"],["lang","lang"],["metTijd","met tijd"]],110)}`
+        : "";
+      return `
+        <p class="text-muted mb-0 pt-2 border-top small">${ceSpan(b.id,"label",b.props.label,"Label")}: ${ceSpan(b.id,"attribuut",b.props.attribuut,"attribuut")}</p>
+        <div class="cb-controls">
+          <span class="role-hint">Type</span>${plainSelectHTML(b.id,"type",b.props.type,[["tekst","Tekst"],["getal","Getal"],["datum","Datum"]],90)}
+          ${dfSel}
+        </div>`;
     },
     code(b){
       const attr=b.props.attribuut||"veld";
-      return [`  \u0024{${attr} ? \`<p class="text-muted mb-0 pt-2 border-top small">${tokenize(b.props.label)}: ${dfmt(attr)}</p>\` : ''}`];
+      let valExprStr;
+      if(b.props.type==="datum") valExprStr = dateExprFor(attr, b.props.datumformaat);
+      else if(b.props.type==="getal") valExprStr = "\u0024{"+attr+" ?? 0}";
+      else valExprStr = "\u0024{"+attr+"}";
+      return [`  \u0024{${attr} ? \`<p class="text-muted mb-0 pt-2 border-top small">${tokenize(b.props.label)}: ${valExprStr}</p>\` : ''}`];
     }
   },
 
@@ -458,11 +780,21 @@ const BLOCK_DEFS = {
   }
 };
 
+/* helper voor de Tekst-render (los van code-generatie) */
+function renderTekst(raw, grootte, ceSpanHtml){
+  if(grootte==="kop") return `<h6 class="mb-0">${ceSpanHtml}</h6>`;
+  if(grootte==="klein") return `<div class="small">${ceSpanHtml}</div>`;
+  if(grootte==="gedempt") return `<small class="text-muted">${ceSpanHtml}</small>`;
+  return `<div>${ceSpanHtml}</div>`;
+}
+
 const PALETTE_GROUPS=[
-  {title:"Kop & badges", items:["kop","badge"]},
-  {title:"Cijfers", items:["cijferrij","hero","meetwaarde"]},
-  {title:"Lijsten & tijd", items:["lijst","duur","progress"]},
-  {title:"Overig", items:["chips","details","footer","divider"]}
+  {title:"Kop", items:["kop"]},
+  {title:"Basis-elementen (ook nestbaar in Rij)", items:["tekst","waarde","badge","icoon","hero"]},
+  {title:"Lay-out", items:["rij","details","divider"]},
+  {title:"Lijsten", items:["lijst","chips"]},
+  {title:"Overig", items:["footer"]},
+  {title:"Geavanceerd", items:["duur","progress"]}
 ];
 
 /* =====================================================================
@@ -477,6 +809,23 @@ const canvasEl=document.getElementById("canvas");
 const outputEl=document.getElementById("output");
 
 /* =====================================================================
+   BLOK LOKALISEREN (top-level of genest in een Rij-kolom)
+===================================================================== */
+function locateBlock(id){
+  for(let i=0;i<canvasBlocks.length;i++){
+    const b=canvasBlocks[i];
+    if(b.id===id) return {block:b, parent:null, colIdx:null, topIndex:i};
+    if(b.type==="rij"){
+      for(let ci=0;ci<b.props.kolommen.length;ci++){
+        const col=b.props.kolommen[ci];
+        if(col.child && col.child.id===id) return {block:col.child, parent:b, colIdx:ci};
+      }
+    }
+  }
+  return null;
+}
+
+/* =====================================================================
    PALET renderen
 ===================================================================== */
 function renderPalette(){
@@ -486,7 +835,7 @@ function renderPalette(){
       <div class="d-flex flex-column gap-2">
         ${g.items.map(type=>{
           const def=BLOCK_DEFS[type];
-          return `<div class="palette-item" draggable="true" data-type="${type}">
+          return `<div class="palette-item" draggable="true" data-type="${type}" data-nestable="${def.nestable?1:0}">
             <span class="pi-icon">${def.icon}</span>
             <span><span>${esc(def.label)}</span><span class="pi-hint">${esc(def.hint)}</span></span>
           </div>`;
@@ -520,11 +869,22 @@ function renderCanvas(){
   }
   canvasEl.innerHTML = canvasBlocks.map((b,i)=>blockWrapperHTML(b,i)).join("");
 }
-function rerenderBlock(blockId){
-  const b=canvasBlocks.find(x=>x.id===blockId); if(!b) return;
-  const idx=canvasBlocks.indexOf(b);
-  const wrap=canvasEl.querySelector(`[data-block-id="${blockId}"]`);
-  if(wrap) wrap.outerHTML = blockWrapperHTML(b, idx);
+function rerenderBlock(id){
+  const loc=locateBlock(id);
+  if(!loc) return;
+  if(!loc.parent){
+    const wrap=canvasEl.querySelector(`[data-block-id="${id}"]`);
+    if(wrap) wrap.outerHTML = blockWrapperHTML(loc.block, loc.topIndex);
+  } else {
+    // genest: hertekent de hele ouder-Rij (eenvoudiger en altijd correct)
+    rerenderTopLevelOf(loc.parent.id);
+  }
+}
+function rerenderTopLevelOf(id){
+  const idx=canvasBlocks.findIndex(b=>b.id===id);
+  if(idx===-1) return;
+  const wrap=canvasEl.querySelector(`[data-block-id="${id}"]`);
+  if(wrap) wrap.outerHTML = blockWrapperHTML(canvasBlocks[idx], idx);
 }
 
 /* =====================================================================
@@ -544,6 +904,10 @@ function defaultItemFor(type, slot){
   if(slot==="kolommen") return {label:"Label", attribuut:"veld"};
   if(slot==="rijen") return {label:"Label", attribuut:"veld", type:"tekst"};
   if(slot==="items") return {label:"Label", attribuut:"veld"};
+  if(slot==="regels" || slot==="icoonRegels"){
+    if(type==="kop" || type==="icoon") return {type:"exact", when:"", url:""};
+    return {type:"exact", when:"", kleur:"text-bg-secondary", label:""};
+  }
   return {};
 }
 function addBlock(type, index){
@@ -559,10 +923,13 @@ function addBlock(type, index){
 ===================================================================== */
 canvasEl.addEventListener("input", e=>{
   const t=e.target; if(!t.classList || !t.classList.contains("slot-ce")) return;
-  const block=canvasBlocks.find(b=>b.id===t.dataset.block); if(!block) return;
+  const loc=locateBlock(t.dataset.block); if(!loc) return;
+  const block=loc.block;
   const slot=t.dataset.slot, idx=t.dataset.idx, field=t.dataset.field, val=t.textContent;
   if(idx!==undefined && idx!=="" && field){
     block.props[slot][+idx][field]=val;
+  } else if(field){
+    block.props[slot][field]=val;
   } else {
     block.props[slot]=val;
   }
@@ -585,11 +952,17 @@ canvasEl.addEventListener("paste", e=>{
 canvasEl.addEventListener("change", e=>{
   const t=e.target;
   if(!t.dataset || !t.dataset.block) return;
-  const block=canvasBlocks.find(b=>b.id===t.dataset.block); if(!block) return;
+  const loc=locateBlock(t.dataset.block); if(!loc) return;
+  const block=loc.block;
   const slot=t.dataset.slot, idx=t.dataset.idx, field=t.dataset.field;
   if(t.tagName==="SELECT"){
-    if(idx!==undefined && idx!=="" && field) block.props[slot][+idx][field]=t.value;
-    else block.props[slot]=t.value;
+    if(idx!==undefined && idx!=="" && field){
+      block.props[slot][+idx][field]=t.value;
+    } else if(field){
+      block.props[slot][field]=t.value;
+    } else {
+      block.props[slot]=t.value;
+    }
     rerenderBlock(block.id);
   } else if(t.type==="checkbox"){
     block.props[slot]=t.checked;
@@ -602,11 +975,38 @@ canvasEl.addEventListener("click", e=>{
   const actionEl=e.target.closest("[data-action]");
   if(!actionEl) return;
   const action=actionEl.dataset.action, blockId=actionEl.dataset.block;
+
   if(action==="delete-block"){
     canvasBlocks=canvasBlocks.filter(b=>b.id!==blockId);
     renderCanvas(); updateCode(); return;
   }
-  const block=canvasBlocks.find(b=>b.id===blockId); if(!block) return;
+
+  if(action==="add-column"){
+    const rij=canvasBlocks.find(b=>b.id===blockId); if(!rij) return;
+    rij.props.kolommen.push({child:null});
+    rerenderTopLevelOf(blockId); updateCode(); return;
+  }
+  if(action==="remove-column"){
+    const rij=canvasBlocks.find(b=>b.id===blockId); if(!rij) return;
+    rij.props.kolommen.pop();
+    rerenderTopLevelOf(blockId); updateCode(); return;
+  }
+  if(action==="fill-column"){
+    const rij=canvasBlocks.find(b=>b.id===blockId); if(!rij) return;
+    const idx=+actionEl.dataset.idx;
+    const childType=actionEl.dataset.childtype;
+    rij.props.kolommen[idx].child = { id:newId(), type:childType, props:BLOCK_DEFS[childType].defaultProps() };
+    rerenderTopLevelOf(blockId); updateCode(); return;
+  }
+  if(action==="clear-column"){
+    const rij=canvasBlocks.find(b=>b.id===blockId); if(!rij) return;
+    const idx=+actionEl.dataset.idx;
+    rij.props.kolommen[idx].child = null;
+    rerenderTopLevelOf(blockId); updateCode(); return;
+  }
+
+  const loc=locateBlock(blockId); if(!loc) return;
+  const block=loc.block;
   if(action==="add-item"){
     const slot=actionEl.dataset.slot;
     block.props[slot].push(defaultItemFor(block.type, slot));
@@ -619,10 +1019,10 @@ canvasEl.addEventListener("click", e=>{
   }
 });
 
-/* drag&drop: herordenen + vanuit palet invoegen */
+/* drag&drop: herordenen + vanuit palet invoegen (top-level) + vullen van Rij-kolommen */
 let indicatorIdx=null;
 function computeDropIndex(clientY){
-  const els=[...canvasEl.querySelectorAll(".canvas-block")];
+  const els=[...canvasEl.querySelectorAll(":scope > .canvas-block")];
   for(let i=0;i<els.length;i++){
     const r=els[i].getBoundingClientRect();
     if(clientY < r.top + r.height/2) return i;
@@ -630,8 +1030,8 @@ function computeDropIndex(clientY){
   return els.length;
 }
 function showIndicator(idx){
-  canvasEl.querySelectorAll(".drop-indicator").forEach(n=>n.remove());
-  const els=[...canvasEl.querySelectorAll(".canvas-block")];
+  canvasEl.querySelectorAll(":scope > .drop-indicator").forEach(n=>n.remove());
+  const els=[...canvasEl.querySelectorAll(":scope > .canvas-block")];
   const marker=document.createElement("div");
   marker.className="drop-indicator";
   if(idx>=els.length) canvasEl.appendChild(marker);
@@ -640,6 +1040,13 @@ function showIndicator(idx){
 }
 canvasEl.addEventListener("dragover", e=>{
   e.preventDefault();
+  const col=e.target.closest(".rij-col-empty");
+  canvasEl.querySelectorAll(".rij-col-empty").forEach(c=>c.classList.remove("dragover-col"));
+  if(col){
+    col.classList.add("dragover-col");
+    canvasEl.querySelectorAll(":scope > .drop-indicator").forEach(n=>n.remove());
+    return;
+  }
   showIndicator(computeDropIndex(e.clientY));
 });
 canvasEl.addEventListener("dragstart", e=>{
@@ -649,8 +1056,24 @@ canvasEl.addEventListener("dragstart", e=>{
 canvasEl.addEventListener("drop", e=>{
   e.preventDefault();
   const data=e.dataTransfer.getData("text/plain");
+  canvasEl.querySelectorAll(".rij-col-empty").forEach(c=>c.classList.remove("dragover-col"));
+
+  const col=e.target.closest(".rij-col");
+  if(col && data.startsWith("palette:")){
+    const childType=data.slice(8);
+    if(NESTABLE_TYPES.includes(childType)){
+      const rijId=col.dataset.rijId, ci=+col.dataset.colIdx;
+      const rij=canvasBlocks.find(b=>b.id===rijId);
+      if(rij){
+        rij.props.kolommen[ci].child = { id:newId(), type:childType, props:BLOCK_DEFS[childType].defaultProps() };
+        rerenderTopLevelOf(rijId); updateCode();
+      }
+    }
+    return;
+  }
+
   const idx = indicatorIdx ?? canvasBlocks.length;
-  canvasEl.querySelectorAll(".drop-indicator").forEach(n=>n.remove());
+  canvasEl.querySelectorAll(":scope > .drop-indicator").forEach(n=>n.remove());
   indicatorIdx=null;
   if(data.startsWith("palette:")){
     addBlock(data.slice(8), idx);
@@ -677,7 +1100,7 @@ document.getElementById("copyBtn").addEventListener("click", async e=>{
     const b=e.target, t=b.textContent;
     b.textContent="Gekopieerd ✓"; b.classList.add("copied-flash");
     setTimeout(()=>{b.textContent=t; b.classList.remove("copied-flash");},1200);
-  }catch{ alert("Kopiëren mislukt, selecteer handmatig."); }
+  }catch{ alert("Kopiëren mislukt — selecteer handmatig."); }
 });
 
 /* init */
